@@ -1,0 +1,31 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+.venv/
+venv/
+
+# Environment variables
+.env
+
+# Editor & OS-specific files
+.idea/
+.vscode/
+.DS_Store
+
+# Logs & temp files
+*.log
+
+# Testing & coverage reports
+.coverage
+htmlcov/
+pytest_cache/
+
+# Build artifacts
+*.egg-info/
+dist/
+build/
+
+# Docker files
+docker-compose.override.yml
