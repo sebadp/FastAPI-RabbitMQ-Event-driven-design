@@ -1,0 +1,73 @@
+# --- Consumer: Order Created ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: consumer-order-created
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: consumer-order-created
+  template:
+    metadata:
+      labels:
+        app: consumer-order-created
+    spec:
+      containers:
+        - name: consumer
+          image: real-time-order-processing:latest
+          imagePullPolicy: IfNotPresent
+          command: ["python", "-m", "app.events.order_created_consumer"]
+          envFrom:
+            - configMapRef:
+                name: order-app-config
+
+---
+# --- Consumer: Order Paid ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: consumer-order-paid
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: consumer-order-paid
+  template:
+    metadata:
+      labels:
+        app: consumer-order-paid
+    spec:
+      containers:
+        - name: consumer
+          image: real-time-order-processing:latest
+          imagePullPolicy: IfNotPresent
+          command: ["python", "-m", "app.events.order_paid_consumer"]
+          envFrom:
+            - configMapRef:
+                name: order-app-config
+
+---
+# --- Consumer: Order Shipped ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: consumer-order-shipped
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: consumer-order-shipped
+  template:
+    metadata:
+      labels:
+        app: consumer-order-shipped
+    spec:
+      containers:
+        - name: consumer
+          image: real-time-order-processing:latest
+          imagePullPolicy: IfNotPresent
+          command: ["python", "-m", "app.events.order_shipped_consumer"]
+          envFrom:
+            - configMapRef:
+                name: order-app-config

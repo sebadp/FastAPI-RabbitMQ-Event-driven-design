@@ -1,0 +1,16 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: test-rabbitmq-connection
+spec:
+  template:
+    spec:
+      containers:
+        - name: test-connection
+          image: real-time-order-processing:latest
+          command: ["python", "test_connection.py"]
+          envFrom:
+            - configMapRef:
+                name: order-app-config
+      restartPolicy: Never
+  backoffLimit: 2

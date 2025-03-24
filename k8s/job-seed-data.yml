@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: seed-data
+spec:
+  template:
+    spec:
+      containers:
+        - name: seed
+          image: real-time-order-processing:latest
+          command: ["python", "-m", "app.utils.seed_data"]
+          envFrom:
+            - configMapRef:
+                name: order-app-config
+          env:
+            - name: NUM_PRODUCTS
+              value: "{{NUM_PRODUCTS}}"
+            - name: NUM_ORDERS
+              value: "{{NUM_ORDERS}}"
+      restartPolicy: Never
+  backoffLimit: 1

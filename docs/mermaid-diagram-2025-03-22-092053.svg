@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1000 1500" xmlns="http://www.w3.org/2000/svg" style="max-width: 100%;">
+  <!-- Define common styles -->
+  <style>
+    .node { font-family: sans-serif; font-size: 14px; fill: #333; }
+    .rect { fill: #ECECFF; stroke: #9370DB; stroke-width: 1; }
+    .arrow { fill: none; stroke: #333; stroke-width: 2; marker-end: url(#arrowhead); }
+    .label { text-anchor: middle; }
+  </style>
+  <!-- Arrow marker definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+    </marker>
+  </defs>
+  <!-- Nodes -->
+  <!-- Node 1: Customer creates order -->
+  <g transform="translate(500, 50)">
+    <rect x="-100" y="-20" width="200" height="40" class="rect"/>
+    <text class="node label" x="0" y="5">Customer creates order</text>
+  </g>
+  <!-- Node 2: POST /orders/ endpoint -->
+  <g transform="translate(500, 120)">
+    <rect x="-90" y="-20" width="180" height="40" class="rect"/>
+    <text class="node label" x="0" y="5">POST /orders/</text>
+  </g>
+  <!-- Node 3: RabbitMQ: OrderCreated -->
+  <g transform="translate(500, 190)">
+    <rect x="-110" y="-20" width="220" height="40" class="rect"/>
+    <text class="node label" x="0" y="5">RabbitMQ: OrderCreated</text>
+  </g>
+  <!-- Node 4: Dispatcher calls handle_order_created -->
+  <g transform="translate(500, 260)">
+    <rect x="-130" y="-20" width="260" height="40" class="rect"/>
+    <text class="node label" x="0" y="5">Dispatcher: handle_order_created</text>
+  </g>
+  <!-- Node 5: Order status updated to pending_payment; Notifies Customer -->
+  <g transform="translate(500, 330)">
+    <rect x="-160" y="-20" width="320" height="40" class="rect"/>
+    <text class="node label" x="0" y="5">Update status to pending_payment; Notify Customer</text>
+  </g>
+  <!-- Node 6: POST /orders/{id}/pay endpoint -->
+  <g transform="translate(500, 400)">
+    <rect x="-90" y="-20" width="180" height="40" class="rect"/>
+    <text class="node label" x="0" y="5">POST /orders/{id}/pay</text>
+  </g>
+  <!-- Node 7: RabbitMQ: OrderPaid -->
+  <g transform="translate(500, 470)">
+    <rect x="-100" y="-20" width="200" height="40" class="rect"/>
+    <text class="node label" x="0" y="5">RabbitMQ: OrderPaid</text>
+  </g>
+  <!-- Node 8: Dispatcher calls handle_order_payed -->
+  <g transform="translate(500, 540)">
+    <rect x="-130" y="-20" width="260" height="40" class="rect"/>
+    <text class="node label" x="0" y="5">Dispatcher: handle_order_payed</text>
+  </g>
+  <!-- Node 9: Order status updated to in_preparation; Notifies Supplier -->
+  <g transform="translate(500, 610)">
+    <rect x="-170" y="-20" width="340" height="40" class="rect"/>
+    <text class="node label" x="0" y="5">Update status to in_preparation; Notify Supplier</text>
+  </g>
+  <!-- Node 10: POST /orders/{id}/ready-to-ship endpoint -->
+  <g transform="translate(500, 680)">
+    <rect x="-110" y="-20" width="220" height="40" class="rect"/>
+    <text class="node label" x="0" y="5">POST /orders/{id}/ready-to-ship</text>
+  </g>
+  <!-- Node 11: RabbitMQ: OrderReadyToShip -->
+  <g transform="translate(500, 750)">
+    <rect x="-130" y="-20" width="260" height="40" class="rect"/>
+    <text class="node label" x="0" y="5">RabbitMQ: OrderReadyToShip</text>
+  </g>
+  <!-- Node 12: Dispatcher calls handle_order_ready_to_ship -->
+  <g transform="translate(500, 820)">
+    <rect x="-150" y="-20" width="300" height="40" class="rect"/>
+    <text class="node label" x="0" y="5">Dispatcher: handle_order_ready_to_ship</text>
+  </g>
+  <!-- Node 13: Order status updated to ready_to_ship; Notifies Carrier -->
+  <g transform="translate(500, 890)">
+    <rect x="-180" y="-20" width="360" height="40" class="rect"/>
+    <text class="node label" x="0" y="5">Update status to ready_to_ship; Notify Carrier</text>
+  </g>
+  <!-- Node 14: POST /orders/{id}/shipped endpoint -->
+  <g transform="translate(500, 960)">
+    <rect x="-90" y="-20" width="180" height="40" class="rect"/>
+    <text class="node label" x="0" y="5">POST /orders/{id}/shipped</text>
+  </g>
+  <!-- Node 15: RabbitMQ: Shipped -->
+  <g transform="translate(500, 1030)">
+    <rect x="-90" y="-20" width="180" height="40" class="rect"/>
+    <text class="node label" x="0" y="5">RabbitMQ: Shipped</text>
+  </g>
+  <!-- Node 16: Dispatcher calls handle_shipped -->
+  <g transform="translate(500, 1100)">
+    <rect x="-120" y="-20" width="240" height="40" class="rect"/>
+    <text class="node label" x="0" y="5">Dispatcher: handle_shipped</text>
+  </g>
+  <!-- Node 17: Order status updated to shipped; Notifies Customer -->
+  <g transform="translate(500, 1170)">
+    <rect x="-160" y="-20" width="320" height="40" class="rect"/>
+    <text class="node label" x="0" y="5">Update status to shipped; Notify Customer</text>
+  </g>
+  <!-- Node 18: POST /orders/{id}/delivered endpoint -->
+  <g transform="translate(500, 1240)">
+    <rect x="-90" y="-20" width="180" height="40" class="rect"/>
+    <text class="node label" x="0" y="5">POST /orders/{id}/delivered</text>
+  </g>
+  <!-- Node 19: RabbitMQ: Delivered -->
+  <g transform="translate(500, 1310)">
+    <rect x="-90" y="-20" width="180" height="40" class="rect"/>
+    <text class="node label" x="0" y="5">RabbitMQ: Delivered</text>
+  </g>
+  <!-- Node 20: Dispatcher calls handle_delivered -->
+  <g transform="translate(500, 1380)">
+    <rect x="-120" y="-20" width="240" height="40" class="rect"/>
+    <text class="node label" x="0" y="5">Dispatcher: handle_delivered</text>
+  </g>
+  <!-- Node 21: Order status updated to delivered; Notifies Customer -->
+  <g transform="translate(500, 1450)">
+    <rect x="-140" y="-20" width="280" height="40" class="rect"/>
+    <text class="node label" x="0" y="5">Update status to delivered; Notify Customer</text>
+  </g>
+  <!-- Arrows connecting nodes -->
+  <line x1="500" y1="70" x2="500" y2="100" class="arrow" />
+  <line x1="500" y1="140" x2="500" y2="170" class="arrow" />
+  <line x1="500" y1="210" x2="500" y2="240" class="arrow" />
+  <line x1="500" y1="280" x2="500" y2="310" class="arrow" />
+  <line x1="500" y1="350" x2="500" y2="380" class="arrow" />
+  <line x1="500" y1="420" x2="500" y2="450" class="arrow" />
+  <line x1="500" y1="490" x2="500" y2="520" class="arrow" />
+  <line x1="500" y1="560" x2="500" y2="590" class="arrow" />
+  <line x1="500" y1="630" x2="500" y2="660" class="arrow" />
+  <line x1="500" y1="700" x2="500" y2="730" class="arrow" />
+  <line x1="500" y1="770" x2="500" y2="800" class="arrow" />
+  <line x1="500" y1="840" x2="500" y2="870" class="arrow" />
+  <line x1="500" y1="910" x2="500" y2="940" class="arrow" />
+  <line x1="500" y1="980" x2="500" y2="1010" class="arrow" />
+  <line x1="500" y1="1050" x2="500" y2="1080" class="arrow" />
+  <line x1="500" y1="1120" x2="500" y2="1150" class="arrow" />
+  <line x1="500" y1="1180" x2="500" y2="1210" class="arrow" />
+  <line x1="500" y1="1250" x2="500" y2="1280" class="arrow" />
+  <line x1="500" y1="1320" x2="500" y2="1350" class="arrow" />
+  <line x1="500" y1="1390" x2="500" y2="1420" class="arrow" />
+  <line x1="500" y1="1460" x2="500" y2="1490" class="arrow" />
+</svg>

@@ -1,0 +1,342 @@
+# configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: order-app-config
+data:
+  DATABASE_URL: postgresql://user:password@postgres/orders_db
+  RABBITMQ_HOST: rabbitmq
+  RABBITMQ_USER: user
+  RABBITMQ_PASS: password
+  REDIS_HOST: redis
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+  REDIS_PASSWORD: redispassword
+  API_PREFIX: /api
+  DEBUG: "False"
+  ENVIRONMENT: production
+  LOG_LEVEL: INFO
+  MAX_RETRIES: "3"
+  RETRY_DELAY: "5000"
+# k8s/consumers-deployment.yml
+# --- Consumer: Order Created ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: consumer-order-created
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: consumer-order-created
+  template:
+    metadata:
+      labels:
+        app: consumer-order-created
+    spec:
+      containers:
+        - name: consumer
+          image: real-time-order-processing:latest
+          imagePullPolicy: IfNotPresent
+          command: ["python", "-m", "app.events.order_created_consumer"]
+          envFrom:
+            - configMapRef:
+                name: order-app-config
+
+---
+# --- Consumer: Order Paid ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: consumer-order-paid
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: consumer-order-paid
+  template:
+    metadata:
+      labels:
+        app: consumer-order-paid
+    spec:
+      containers:
+        - name: consumer
+          image: real-time-order-processing:latest
+          imagePullPolicy: IfNotPresent
+          command: ["python", "-m", "app.events.order_paid_consumer"]
+          envFrom:
+            - configMapRef:
+                name: order-app-config
+
+---
+# --- Consumer: Order Shipped ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: consumer-order-shipped
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: consumer-order-shipped
+  template:
+    metadata:
+      labels:
+        app: consumer-order-shipped
+    spec:
+      containers:
+        - name: consumer
+          image: real-time-order-processing:latest
+          imagePullPolicy: IfNotPresent
+          command: ["python", "-m", "app.events.order_shipped_consumer"]
+          envFrom:
+            - configMapRef:
+                name: order-app-config
+
+# fastapi-deployment.yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fastapi
+  template:
+    metadata:
+      labels:
+        app: fastapi
+    spec:
+      containers:
+        - name: fastapi
+          image: real-time-order-processing:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+          envFrom:
+            - configMapRef:
+                name: order-app-config
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+
+# job-seed-data.yml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: seed-data
+spec:
+  template:
+    spec:
+      containers:
+        - name: seed
+          image: real-time-order-processing:latest
+          command: ["python", "-m", "app.utils.seed_data"]
+          envFrom:
+            - configMapRef:
+                name: order-app-config
+          env:
+            - name: NUM_PRODUCTS
+              value: "{{NUM_PRODUCTS}}"
+            - name: NUM_ORDERS
+              value: "{{NUM_ORDERS}}"
+      restartPolicy: Never
+  backoffLimit: 1
+
+# job-test-connection.yml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: test-rabbitmq-connection
+spec:
+  template:
+    spec:
+      containers:
+        - name: test-connection
+          image: real-time-order-processing:latest
+          command: ["python", "test_connection.py"]
+          envFrom:
+            - configMapRef:
+                name: order-app-config
+      restartPolicy: Never
+  backoffLimit: 2
+
+# postgres-deployment.yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: order-app-config
+                  key: RABBITMQ_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  name: order-app-config
+                  key: RABBITMQ_PASS
+            - name: POSTGRES_DB
+              value: orders_db
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: postgres-pvc
+
+# rabbitmq-deployment.yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      containers:
+        - name: rabbitmq
+          image: rabbitmq:3.9-management
+          ports:
+            - containerPort: 5672  # RabbitMQ (AMQP)
+            - containerPort: 15672 # Management UI
+          env:
+            - name: RABBITMQ_DEFAULT_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: order-app-config
+                  key: RABBITMQ_USER
+            - name: RABBITMQ_DEFAULT_PASS
+              valueFrom:
+                configMapKeyRef:
+                  name: order-app-config
+                  key: RABBITMQ_PASS
+
+# redis-deployment.yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:latest
+          ports:
+            - containerPort: 6379
+
+# services.yml
+# --- FastAPI Service ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fastapi
+spec:
+  selector:
+    app: fastapi
+  ports:
+    - port: 8000
+      targetPort: 8000
+  type: NodePort
+
+---
+# --- RabbitMQ Service ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+spec:
+  selector:
+    app: rabbitmq
+  ports:
+    - name: amqp
+      port: 5672
+      targetPort: 5672
+    - name: management
+      port: 15672
+      targetPort: 15672
+  type: ClusterIP
+
+---
+# --- PostgreSQL Service ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+spec:
+  selector:
+    app: postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+  type: ClusterIP
+
+---
+# --- Redis Service ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+spec:
+  selector:
+    app: redis
+  ports:
+    - port: 6379
+      targetPort: 6379
+  type: ClusterIP
+
+# postgres-pvc.yml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

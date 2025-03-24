@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: order-app-config
+data:
+  DATABASE_URL: postgresql://user:password@postgres/orders_db
+  RABBITMQ_HOST: rabbitmq
+  RABBITMQ_USER: user
+  RABBITMQ_PASS: password
+  REDIS_HOST: redis
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+  REDIS_PASSWORD: redispassword
+  API_PREFIX: /api
+  DEBUG: "False"
+  ENVIRONMENT: production
+  LOG_LEVEL: INFO
+  MAX_RETRIES: "3"
+  RETRY_DELAY: "5000"

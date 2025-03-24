@@ -1,0 +1,142 @@
+version: "3.8"
+
+services:
+  rabbitmq:
+    image: "rabbitmq:management"
+    container_name: rabbitmq
+    hostname: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+    ports:
+      - "5672:5672"   # AMQP
+      - "15672:15672" # admin UI
+    restart: always
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: orders_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: always
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+  api:
+    build: .
+    container_name: fastapi_app
+    depends_on:
+      - rabbitmq
+      - postgres
+      - redis
+    environment:
+      DATABASE_URL: postgresql://user:password@postgres/orders_db
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: user
+      RABBITMQ_PASS: password
+    ports:
+      - "8000:8000"
+    restart: always
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+  consumer_order_created:
+    build: .
+    container_name: consumer_order_created
+    depends_on:
+      - rabbitmq
+    environment:
+      PYTHONPATH: "/app"
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: user
+      RABBITMQ_PASS: password
+    restart: always
+    command: ["python", "-m", "app.events.order_created_consumer"]
+
+  consumer_order_paid:
+    build: .
+    container_name: consumer_order_paid
+    depends_on:
+      - rabbitmq
+    environment:
+      PYTHONPATH: "/app"
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: user
+      RABBITMQ_PASS: password
+    restart: always
+    command: ["python", "-m", "app.events.order_paid_consumer"]
+
+  consumer_order_shipped:
+    build: .
+    container_name: consumer_order_shipped
+    depends_on:
+      - rabbitmq
+    environment:
+      PYTHONPATH: "/app"
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: user
+      RABBITMQ_PASS: password
+    restart: always
+    command: ["python", "-m", "app.events.order_shipped_consumer"]
+
+  consumer_order_ready_to_ship:
+    build: .
+    container_name: consumer_order_ready_to_ship
+    depends_on:
+      - rabbitmq
+    environment:
+      PYTHONPATH: "/app"
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: user
+      RABBITMQ_PASS: password
+    restart: always
+    command: ["python", "-m", "app.events.order_ready_consumer"]
+
+  consumer_order_delivered:
+    build: .
+    container_name: consumer_order_delivered
+    depends_on:
+      - rabbitmq
+    environment:
+      PYTHONPATH: "/app"
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: user
+      RABBITMQ_PASS: password
+    restart: always
+    command: ["python", "-m", "app.events.order_delivered_consumer"]
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    depends_on:
+      - postgres
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    restart: always
+
+  seed:
+    build: .
+    container_name: seed
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgresql://user:password@postgres/orders_db
+      NUM_PRODUCTS: 10
+      NUM_ORDERS: 5
+    command: [ "python", "-m", "app.utils.seed_data" ]
+
+volumes:
+  pgdata:
