@@ -49,7 +49,7 @@ Handlers (implemented in `app/events/handlers.py`) contain the business logic fo
 - **handle_delivered:** Updates order status to *delivered* and notifies the customer
 
 ### Consumers
-Consumers are refactored to extend a common base (see `app/events/base_consumer.py"), which handles:
+Consumers extend a common base (see `app/events/base_consumer.py"), which handles:
 - Connection to RabbitMQ
 - Queue declaration
 - Retries

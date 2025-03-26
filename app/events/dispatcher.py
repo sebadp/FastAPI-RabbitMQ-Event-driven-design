@@ -1,5 +1,12 @@
 from app.config import logger
 
+from app.events.handlers import (
+    handle_order_created,
+    handle_order_payed,
+    handle_order_ready_to_ship,
+    handle_shipped,
+    handle_delivered,
+)
 handlers = {}
 
 
@@ -17,16 +24,8 @@ def dispatch_event(event: dict):
         logger.warning(f"No handler registered for event: {event_type}")
 
 
-from app.events.handlers import (
-    handle_order_created,
-    handle_order_payed,
-    handle_order_ready_to_ship,
-    handle_shipped,
-    handle_delivered,
-)
-
-register_handler("OrderCreated", handle_order_created)
-register_handler("OrderPaid", handle_order_payed)
-register_handler("OrderReadyToShip", handle_order_ready_to_ship)
-register_handler("Shipped", handle_shipped)
-register_handler("Delivered", handle_delivered)
+register_handler("order.created", handle_order_created)
+register_handler("order.paid", handle_order_payed)
+register_handler("order.ready.to.ship", handle_order_ready_to_ship)
+register_handler("order.shipped", handle_shipped)
+register_handler("order.delivered", handle_delivered)
