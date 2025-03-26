@@ -23,25 +23,39 @@ class BaseConsumer:
         for i in range(5):
             try:
                 self.connection = pika.BlockingConnection(
-                    pika.ConnectionParameters(host=rabbitmq_host, credentials=credentials)
+                    pika.ConnectionParameters(
+                        host=rabbitmq_host, credentials=credentials
+                    )
                 )
                 break
             except pika.exceptions.AMQPConnectionError as e:
-                logger.warning(f"Attempt {i+1}/5: Unable to connect to RabbitMQ, retrying in 5 seconds...")
+                logger.warning(
+                    f"Attempt {i+1}/5: Unable to connect to RabbitMQ, retrying in 5 seconds..."
+                )
                 time.sleep(5)
         else:
-            raise EventConsumptionError("Could not connect to RabbitMQ after 5 attempts")
+            raise EventConsumptionError(
+                "Could not connect to RabbitMQ after 5 attempts"
+            )
 
         self.channel = self.connection.channel()
         # Declare exchange and queue as durable
-        self.channel.exchange_declare(exchange=self.exchange_name, exchange_type="direct", durable=True)
+        self.channel.exchange_declare(
+            exchange=self.exchange_name, exchange_type="direct", durable=True
+        )
         self.channel.queue_declare(queue=self.queue_name, durable=True)
-        self.channel.queue_bind(exchange=self.exchange_name, queue=self.queue_name, routing_key=self.routing_key)
+        self.channel.queue_bind(
+            exchange=self.exchange_name,
+            queue=self.queue_name,
+            routing_key=self.routing_key,
+        )
 
     def start_consuming(self, callback):
         """Starts consuming messages using the provided callback."""
         self.channel.basic_qos(prefetch_count=1)
-        self.channel.basic_consume(queue=self.queue_name, on_message_callback=callback, auto_ack=False)
+        self.channel.basic_consume(
+            queue=self.queue_name, on_message_callback=callback, auto_ack=False
+        )
         logger.info(f"Consumer listening on queue: {self.queue_name}")
         self.channel.start_consuming()
 

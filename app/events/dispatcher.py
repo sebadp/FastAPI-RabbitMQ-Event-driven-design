@@ -7,6 +7,7 @@ from app.events.handlers import (
     handle_shipped,
     handle_delivered,
 )
+
 handlers = {}
 
 
