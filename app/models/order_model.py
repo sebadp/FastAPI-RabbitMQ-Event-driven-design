@@ -1,12 +1,13 @@
-import enum
+from datetime import datetime
+from enum import Enum
 
 from sqlalchemy import Column, Integer, String, DateTime, Enum as SQLEnum
 from sqlalchemy.orm import relationship
+
 from app.models.database import Base
-from datetime import datetime
 
 
-class OrderStatus(enum.Enum):
+class OrderStatus(Enum):
     CREATED = "created"
     PENDING_PAYMENT = "pending_payment"
     IN_PREPARATION = "in_preparation"

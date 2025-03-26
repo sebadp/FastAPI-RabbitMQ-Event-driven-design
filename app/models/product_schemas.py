@@ -1,7 +1,7 @@
+from datetime import datetime
 from typing import Optional, List
 
 from pydantic import BaseModel, validator, Field, condecimal
-from datetime import datetime
 
 
 class ProductCreate(BaseModel):

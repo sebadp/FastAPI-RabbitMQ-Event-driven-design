@@ -1,28 +1,17 @@
 from datetime import datetime
-from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Body, Path
+from fastapi import APIRouter, Depends, HTTPException, Path
 from sqlalchemy.orm import Session, joinedload
 from starlette import status
 
-from app.models.product_model import Product
-from app.models.order_model import (
-    Order,
-    LineItem,
-    OrderResponse,
-    OrderCreate,
-    OrderStatusResponse,
-    ShippingInfo,
-    OrderDetailResponse,
-)
-from app.services.pricing import StandardPricing, TaxedPricing
-
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from app.events.publisher import EventPublisher
 from app.config import logger
+from app.events.publisher import EventPublisher
 from app.models.database import get_db
+from app.models.line_item_model import LineItem
 from app.models.order_model import Order
+from app.models.order_schemas import OrderResponse, OrderCreate, OrderDetailResponse, OrderStatusResponse
+from app.models.product_model import Product
+from app.services.pricing import StandardPricing, TaxedPricing
 
 router = APIRouter()
 event_publisher = EventPublisher()
@@ -170,17 +159,6 @@ async def get_order(
         items=items_detail,
         total_price=total_price,
     )
-
-
-from fastapi import APIRouter, Depends, HTTPException, Path
-from sqlalchemy.orm import Session
-from datetime import datetime
-from starlette import status
-
-from app.models.database import get_db
-from app.models.order_model import Order, OrderStatusResponse
-from app.events.publisher import EventPublisher
-from app.config import logger
 
 
 @router.post(

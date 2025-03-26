@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Path, Body
 from sqlalchemy.exc import IntegrityError
@@ -6,20 +7,13 @@ from sqlalchemy.orm import Session
 from starlette import status
 
 from app.models.database import get_db
-from app.models.order_model import LineItem
-from app.models.product_model import (
-    Product,
-    ProductList,
-    ProductResponse,
-    ProductCreate,
-)
-from typing import List, Optional
-from pydantic import BaseModel
+from app.models.line_item_model import LineItem
+from app.models.product_model import Product
+from app.models.product_schemas import ProductList, ProductResponse, ProductCreate
 
 router = APIRouter()
 
 
-# List all products with pagination
 @router.get(
     "/products/",
     response_model=ProductList,
@@ -117,7 +111,6 @@ async def list_products(
     }
 
 
-# Get product details
 @router.get(
     "/products/{product_id}",
     response_model=ProductResponse,
@@ -152,7 +145,6 @@ async def get_product(
     return product
 
 
-# Add a new product
 @router.post(
     "/products/",
     response_model=ProductResponse,
@@ -217,7 +209,6 @@ async def add_product(product: ProductCreate, db: Session = Depends(get_db)):
         )
 
 
-# Update product information
 @router.put(
     "/products/{product_id}",
     response_model=ProductResponse,
@@ -290,7 +281,6 @@ async def update_product(
         )
 
 
-# Delete a product
 @router.delete(
     "/products/{product_id}",
     status_code=status.HTTP_204_NO_CONTENT,
